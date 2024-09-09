@@ -16,9 +16,13 @@ ENV PYTHONUNBUFFERED 1
 # tmp에다가 넣은건 최대한 컨테이너를 경량화해주기 위해서(tmp는 일시적, 나중에 build되면 삭제 예정)
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+COPY ./app /app
 
+WORKDIR /app
 # 장고가 8000포트라서 8000포트를 열어준다.
 EXPOSE 8000
+
+ARG DEV=false
 
 # && \: ENTER
 # 가상환경만들기 -> 설치 -> 삭제 ->장고에 접근할 유저 만들기(패스워드없이, 홈에 만들지 말고, 그녀석에 이름은 장고유저)
@@ -26,6 +30,9 @@ RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     rm -rf /tmp && \
+    if [ $DEV = 'true']; \
+        then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
+    fi && \
     adduser \
         --disabled-password \
         --no-create-home \
